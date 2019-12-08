@@ -1,0 +1,28 @@
+file_paths:
+  root: 'data'
+  gaslib_11:
+    path: 'GasLib-11'
+    cs: 'GasLib-11.cs'
+    net: 'GasLib-11.net'
+    scn: 'GasLib-11.scn'
+  gaslib_24:
+    path: 'GasLib-24'
+    cs: 'GasLib-24.cs'
+    net: 'GasLib-24.net'
+    scn: 'GasLib-24.scn'
+  gaslib_40:
+    path: 'GasLib-40'
+    cs: 'GasLib-40.cs'
+    net: 'GasLib-40.net'
+    scn: 'GasLib-40.scn'
+  gaslib_135:
+    path: 'GasLib-135'
+    cs: 'GasLib-135.cs'
+    net: 'GasLib-135.net'
+    scn: 'GasLib-135.scn'
+  gaslib-582:
+    path: 'GasLib-582'
+    cs: 'GasLib-582.cs'
+    net: 'GasLib-582.net'
+    cdf: 'GasLib-582.cdf'
+    scn: 'nomination_cold_8.scn'
