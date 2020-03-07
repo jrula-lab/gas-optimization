@@ -15,3 +15,8 @@ class Element:
     def __hash__(self) -> int:
         return id.__hash__()
 
+    def __str__(self) -> str:
+        return 'Element: id = {} alias = {}'.format(self.id, self.alias)
+
+
+

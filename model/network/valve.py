@@ -12,3 +12,7 @@ class Valve(Connection):
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+    def __str__(self) -> str:
+        return 'Valve id = {} from = {} to = {} flowMin = {} flowMax = {}'.format(self.id, self._from, self.to,
+                                                                                  self.flow_min, self.flow_max)

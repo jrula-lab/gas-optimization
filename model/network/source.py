@@ -23,3 +23,15 @@ class Source(Node):
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+    def __str__(self) -> str:
+        return 'Source: id = {} alias = {} geo_long={} geo_lat={} x={} y={} height={} pressure_min={} pressure_max={} flow_min={} flow_max={}' \
+               'gas_temperature={} calorifict_value={} norm_density={} coeff_a_heat={} coeff_b_heat={} coeff_c_heat={} molar_mass={} pseudo_critical_pressure={}' \
+               'presudo_critical_temperature={}'.format(self.id, self.alias, self.geo_long, self.geo_lat, self.x,
+                                                        self.y, self.height, self.pressure_min, self.pressure_max,
+                                                        self.flow_min, self.flow_max,
+                                                        self.gas_temperature, self.calorific_value, self.norm_density,
+                                                        self.coeff_a_heat_capacity, self.coeff_b_heat_capacity,
+                                                        self.coeff_c_heat_capacity,
+                                                        self.molar_mass, self.pseudo_critical_pressure,
+                                                        self.pseudo_critical_temperature)

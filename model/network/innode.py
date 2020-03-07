@@ -10,3 +10,10 @@ class Innode(Node):
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+    def __str__(self) -> str:
+        return 'Source: id = {} alias = {} geo_long={} geo_lat={} x={} y={} height={} pressure_min={} ' \
+               'pressure_max={} ' \
+            .format(self.id, self.alias, self.geo_long, self.geo_lat, self.x,
+                    self.y, self.height, self.pressure_min, self.pressure_max)
+

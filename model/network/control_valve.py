@@ -17,3 +17,12 @@ class ControlValve(Connection):
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+    def __str__(self) -> str:
+        return 'Pipe id = {} from = {} to = {} pressure_diff_min = {} pressure_diff_max = {} ' \
+               'pressure_in_min = {} pressre__in_max = {} ' \
+               'pressure_loss_in ={} pressure_loss_out ={}'.format(self.id, self._from, self.to, self.pressure_diff_min,
+                                                                   self.pressure_diff_max,
+                                                                   self.pressure_in_min,
+                                                                   self.pressure_out_max,
+                                                                   self.pressure_loss_in, self.pressure_loss_out)
