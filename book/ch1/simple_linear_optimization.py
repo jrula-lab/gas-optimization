@@ -1,6 +1,6 @@
 from pyscipopt import Model
 
-model = Model("Simple linear optimization")
+model = Model("Simple linear optymization")
 
 x1 = model.addVar(vtype="C", name="x1")
 x2 = model.addVar(vtype="C", name="x2")

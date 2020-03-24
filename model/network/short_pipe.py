@@ -14,8 +14,5 @@ class ShortPipe(Connection):
         return super().__hash__()
 
     def __str__(self) -> str:
-        return 'ShortPipe id = {} alias = {} flowMin = {} flowMax = {} pressure_diff_max = {}'.format(self.id,
-                                                                                                      self.alias,
-                                                                                                      self.flow_min,
-                                                                                                      self.flow_max,
-                                                                                                      self.pressure_diff_max)
+        return 'ShortPipe id = {} alias = {} flowMin = {} flowMax = {} pressure_diff_max = {}' \
+            .format(self.id, self.alias, self.flow_min, self.flow_max, self.pressure_diff_max)

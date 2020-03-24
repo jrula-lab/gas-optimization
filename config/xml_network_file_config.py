@@ -104,5 +104,24 @@ class XMLNetworkFileLoading(XMLFileReadingConfig):
                 control_valve_list.append(control_valve)
         return control_valve_list
 
+    @classmethod
+    def get_drive_energy_consumption_measurements(cls, *name):
+        network = cls.get_connections_elements(*name)
+        energy_consumption = []
+        for drive_measurement in network:
+            for measurement in drive_measurement.find('gas:drives', ns).find('gas:gasDrivenMotor', ns).find(
+                    'gas:specificEnergyConsumptionMeasurements', ns):
+                print(measurement)
+                energy_consumption.append(measurement)
+        return energy_consumption
 
-
+    @classmethod
+    def get_drive_power_measurements(cls, *name):
+        network = cls.get_connections_elements(*name)
+        power_measurement_list = []
+        for power_measurement in network:
+            for measurement in power_measurement.find('gas:drives', ns).find('gas:gasDrivenMotor', ns).find(
+                    'gas:maximalPowerMeasurements', ns):
+                print(measurement)
+                power_measurement_list.append(measurement)
+        return power_measurement_list

@@ -1,5 +1,9 @@
 from typing import Callable, List, Tuple, Dict
+from logger.logger import Logger
 from pyscipopt import Model, quicksum
+import numpy as np
+
+
 
 
 class _2DPoint:
@@ -88,10 +92,11 @@ class _2DMesh:
                self.lambda_dict[self.Matrix[x2 + 1][x1 + 1]._lambda]
 
 
-class Approximation:
+class Approximation(Logger):
 
     def __init__(self, x1_min: float, x1_max: float, x2_min: float, x2_max: float, _f_x1_x2: Callable, threshold: int=3,
-                 optimization_type: bool = True):
+                 optimization_type: bool = True, file_name="approximation_2d.txt", simulation_id="id"):
+        Logger.__init__(self, file_name)
         self.x1_max = x1_max
         self.x1_min = x1_min
         self.x2_max = x2_max
@@ -100,6 +105,7 @@ class Approximation:
         self.model = Model('Piecewise Linear Approximation of 2D function')
         self.fx1_x2 = _f_x1_x2
         self.optimization_type = optimization_type
+        self.simulation_id = simulation_id
 
     def add_constraints(self, _lambda, x1, x2):
         triangle_active = {}
@@ -131,18 +137,20 @@ class Approximation:
         self.model.setObjective(quicksum(_lambda_list[i] * fx1_x2_list[i] for i in range(len(fx1_x2_list))),
                                 "minimize" if self.optimization_type else "maximize")
         self.model.optimize()
-        return self.print_approximation_results(_lambda_list, x1_list, x2_list)
+        return self.print_approximation_results(_lambda_list, x1_list, x2_list, fx1_x2_list)
 
-    def print_approximation_results(self, _lambda, x1, x2):
-        print("lambda")
-        for key in _lambda:
-            print("key {} value {}".format(key, self.model.getVal(_lambda[key])))
-        x1 = quicksum(x1[i] * self.model.getVal(_lambda[i]) for i in _lambda)
-        x2 = quicksum(x2[i] * self.model.getVal(_lambda[i]) for i in _lambda)
-        print("x1 {} x2 {}".format(x1, x2))
-        fx1_x2 = self.fx1_x2(x1, x2)
-        print("f(x1, x2): {}".format(fx1_x2))
+    def print_approximation_results(self, _lambda, x1, x2, fx1_x2_list):
+        self.f.write("Simulation id is {}\n".format(self.simulation_id))
+        x1 = np.sum(np.array([x1[i] * self.model.getVal(_lambda[i]) for i in _lambda]))
+        x2 = np.sum(np.array([x2[i] * self.model.getVal(_lambda[i]) for i in _lambda]))
+        fx1_x2 = np.sum(np.array([fx1_x2_list[i]*self.model.getVal(_lambda[i]) for i in _lambda]))
+        self.f.write("x1: {} x2: {} L(f(x1, x2)): {} fx1_x2(x1, x2): {} error: {}\n".format(x1, x2, fx1_x2, self.fx1_x2(x1, x2), fx1_x2-self.fx1_x2(x1, x2)))
+        self.f.close()
 
 
 approximation = Approximation(0.0, 1.0, 0, 1.0, lambda x1, x2: -4 * x1 ** 2 - 3 * x2 ** 2 + 6 * x1 + 0.5 * x2, 3)
 approximation._model_definition()
+
+
+# approximation = Approximation(0.0, 10, 0.0, 10, lambda x1, x2: (x1**2+x2**2-1)**2, 100)
+# approximation._model_definition()

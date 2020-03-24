@@ -13,3 +13,7 @@ class Resistor(Connection):
 
     def __hash__(self) -> int:
         return super().__hash__()
+
+    def __str__(self):
+        return "ShortPipe: id: {}, alias: {}, drag_factor: {}, diameter: {}\n".format(self.id, self.alias,
+                                                                                      self.drag_factor, self.diameter)

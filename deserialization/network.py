@@ -1,9 +1,12 @@
+from typing import Tuple
+
 from config.ns import ns
 from config.xml_network_file_config import XMLNetworkFileLoading
+from constants_global.constants import network_file
+from logger.logger import Logger
 from model.network.compressor_station import CompressorStation
 from model.network.control_valve import ControlValve
 from model.network.innode import Innode
-from model.network.node import Node
 from model.network.pipe import Pipe
 from model.network.resistor import Resistor
 from model.network.short_pipe import ShortPipe
@@ -12,11 +15,28 @@ from model.network.source import Source
 from model.network.valve import Valve
 
 
-class NetworkDeserialization(XMLNetworkFileLoading):
+class NetworkDeserialization(XMLNetworkFileLoading, Logger):
 
-    @classmethod
-    def deserialize_pipe_list(cls, *name) -> [Pipe]:
-        pipe_list: [Pipe] = []
+    def __init__(self, *filename, file_name: str = "networkDeserialization.txt"):
+        Logger.__init__(self, file_name)
+        self.f.write("Network Deserialization Data")
+        self.pipe_list: {Pipe} = self.deserialize_pipe_list(*filename)
+        self.valve_list: {Valve} = self.deserialize_valve_list(*filename)
+        self.short_pipe_list: {ShortPipe} = self.deserialize_short_pipe_list(*filename)
+        self.resistor_list: {Resistor} = self.deserialize_resistor_list(*filename)
+        self.compressor_station_list: {CompressorStation} = self.deserialize_compressor_station_list(*filename)
+        self.node_list: {Innode} = self.deserialize_innode_list(*filename)
+        self.source_list: {Source} = self.deserialize_source_list(*filename)
+        self.sink_list: {Sink} = self.deserialize_sink_list(*filename)
+        self.control_valve_list: {ControlValve} = self.deserialize_control_valve_list(*filename)
+        self.energy_consumption_measurement = self.deserialize_energy_consumption_measurement(*filename)
+        self.power_measurement = self.deserialize_power_measurement(*filename)
+        CompressorStation.set_energy_power_measurement(self.energy_consumption_measurement, self.power_measurement)
+        Source.calculation_reduced_temperature(self.source_list)
+        self.f.close()
+
+    def deserialize_pipe_list(cls, *name) -> {Pipe}:
+        pipe_list: {Pipe} = {}
         for pipe in cls.get_pipes_list(*name):
             new_pipe = Pipe(pipe.attrib.get('id'), pipe.attrib.get('alias'))
             new_pipe._from = pipe.attrib.get('from')
@@ -29,12 +49,12 @@ class NetworkDeserialization(XMLNetworkFileLoading):
             new_pipe.pressure_max = cls.get_pipe_pressure_max(pipe)
             new_pipe.heat_transfer_coeff = cls.get_pipe_heat_transfer_coefficient(pipe)
             print(new_pipe)
-            pipe_list.append(new_pipe)
+            cls.f.write(new_pipe.__str__())
+            pipe_list[new_pipe.id] = new_pipe
         return pipe_list
 
-    @classmethod
-    def deserialize_valve_list(cls, *name) -> [Valve]:
-        valve_list: [Valve] = []
+    def deserialize_valve_list(cls, *name) -> {Valve}:
+        valve_list: {Valve} = {}
         for valve in cls.get_valve_list(*name):
             new_valve = Valve(valve.attrib.get('id'), valve.attrib.get('alias'))
             new_valve._from = valve.attrib.get('from')
@@ -43,26 +63,25 @@ class NetworkDeserialization(XMLNetworkFileLoading):
             new_valve.flow_max = cls.get_pipe_flow_max(valve)
             new_valve.pressure_diff_max = cls.get_valve_pressure_diff_max(valve)
             print(new_valve)
-            valve_list.append(new_valve)
+            cls.f.write(new_valve.__str__())
+            valve_list[new_valve.id] = new_valve
         return valve_list
 
-    @classmethod
-    def deserialize_short_pipe_list(cls, *name) -> [ShortPipe]:
-        short_pipe_list: [ShortPipe] = []
+    def deserialize_short_pipe_list(cls, *name) -> {ShortPipe}:
+        short_pipe_list: {ShortPipe} = {}
         for short_pipe in cls.get_short_pipe_list(*name):
             new_short_pipe = ShortPipe(short_pipe.attrib.get('id'), short_pipe.attrib.get('alias'))
             new_short_pipe._from = short_pipe.attrib.get('from')
             new_short_pipe.to = short_pipe.attrib.get('to')
             new_short_pipe.flow_min = cls.get_pipe_flow_min(short_pipe)
             new_short_pipe.flow_max = cls.get_pipe_flow_max(short_pipe)
-            new_short_pipe.pressure_diff_max = cls.get_valve_pressure_diff_max(short_pipe)
             print(new_short_pipe)
-            short_pipe_list.append(new_short_pipe)
+            cls.f.write(new_short_pipe.__str__())
+            short_pipe_list[new_short_pipe.id] = new_short_pipe
         return short_pipe_list
 
-    @classmethod
-    def deserialize_resistor_list(cls, *name) -> [Resistor]:
-        resistor_list: [Resistor] = []
+    def deserialize_resistor_list(cls, *name) -> {Resistor}:
+        resistor_list: {Resistor} = {}
         for resistor in cls.get_resistors_list(*name):
             new_resistor = Resistor(resistor.attrib.get('id'), resistor.attrib.get('alias'))
             new_resistor._from = resistor.attrib.get('from ')
@@ -72,12 +91,12 @@ class NetworkDeserialization(XMLNetworkFileLoading):
             new_resistor.diameter = cls.get_pipe_diameter(resistor)
             new_resistor.drag_factor = cls.get_resistor_drag_factor(resistor)
             print(new_resistor)
-            resistor_list.append(new_resistor)
+            cls.f.write(new_resistor.__str__())
+            resistor_list[new_resistor.id] = new_resistor
         return resistor_list
 
-    @classmethod
-    def deserialize_compressor_station_list(cls, *name) -> [CompressorStation]:
-        compressor_station_list: [CompressorStation] = []
+    def deserialize_compressor_station_list(cls, *name) -> {CompressorStation}:
+        compressor_station_list: {CompressorStation} = {}
         for compressor in cls.get_compressor_station_list(*name):
             new_compressor = CompressorStation(compressor.attrib.get('id'), compressor.attrib.get('alias'))
             new_compressor._from = compressor.attrib.get('from')
@@ -87,10 +106,10 @@ class NetworkDeserialization(XMLNetworkFileLoading):
             new_compressor.pressure_in_min = cls.get_compressor_pressure_in_min(compressor)
             new_compressor.pressure_out_max = cls.get_compressor_pressure_out_max(compressor)
             print(new_compressor)
-            compressor_station_list.append(new_compressor)
+            cls.f.write(new_compressor.__str__())
+            compressor_station_list[new_compressor.id] = new_compressor
         return compressor_station_list
 
-    @classmethod
     def deserialize_node(cls, new_source, source):
         new_source._from = source.attrib.get('from')
         new_source.to = source.attrib.get('to')
@@ -102,12 +121,11 @@ class NetworkDeserialization(XMLNetworkFileLoading):
         new_source.pressure_min = cls.get_node_pressure_min(source)
         new_source.pressure_max = cls.get_node_pressure_max(source)
 
-    @classmethod
-    def deserialize_source_list(cls, *name) -> [Source]:
-        source_list: [Source] = []
+    def deserialize_source_list(cls, *name) -> {Source}:
+        source_list: {Source} = {}
         for source in cls.get_source_list(*name):
             new_source = Source(source.attrib.get('id'), source.attrib.get('alias'))
-            cls.serialize_node(new_source, source)
+            cls.deserialize_node(new_source, source)
             new_source.flow_min = cls.get_pipe_flow_min(source)
             new_source.flow_max = cls.get_pipe_flow_max(source)
             new_source.gas_temperature = cls.get_source_gas_temperature(source)
@@ -120,34 +138,34 @@ class NetworkDeserialization(XMLNetworkFileLoading):
             new_source.pseudo_critical_pressure = cls.get_source_pseudo_critical_pressure(source)
             new_source.pseudo_critical_temperature = cls.get_source_pseudo_critical_temperature(source)
             print(new_source)
-            source_list.append(new_source)
+            cls.f.write(new_source.__str__())
+            source_list[new_source.id] = new_source
         return source_list
 
-    @classmethod
-    def deserialize_sink_list(cls, *name) -> [Sink]:
-        sink_list: [Sink] = []
+    def deserialize_sink_list(cls, *name) -> {Sink}:
+        sink_list: {Sink} = {}
         for sink in cls.get_sink_list(*name):
             new_sink = Sink(sink.attrib.get('id'), sink.attrib.get('alias'))
-            cls.serialize_node(new_sink, sink)
+            cls.deserialize_node(new_sink, sink)
             new_sink.flow_max = cls.get_pipe_flow_max(sink)
             new_sink.flow_min = cls.get_pipe_flow_min(sink)
             print(new_sink)
-            sink_list.append(new_sink)
+            cls.f.write(new_sink.__str__())
+            sink_list[new_sink.id] = new_sink
         return sink_list
 
-    @classmethod
-    def deserialize_innode_list(cls, *name) -> [Innode]:
-        innode_list: [Innode] = []
+    def deserialize_innode_list(cls, *name) -> {Innode}:
+        innode_list: {Innode} = {}
         for innode in cls.get_innode_list(*name):
             new_innode = Innode(innode.attrib.get('id'), innode.attrib.get('alias'))
-            cls.serialize_node(new_innode, innode)
+            cls.deserialize_node(new_innode, innode)
             print(new_innode)
-            innode_list.append(new_innode)
+            cls.f.write(new_innode.__str__())
+            innode_list[new_innode.id] = new_innode
         return innode_list
 
-    @classmethod
-    def deserialize_control_valve_list(cls, *name) -> [ControlValve]:
-        control_valve_list: [ControlValve] = []
+    def deserialize_control_valve_list(cls, *name) -> {ControlValve}:
+        control_valve_list: {ControlValve} = {}
         for control_valve in cls.get_control_valve_list(*name):
             new_control_valve = ControlValve(control_valve.attrib.get('id'), control_valve.attrib.get('alias'))
             new_control_valve._from = control_valve.attrib.get('from')
@@ -160,13 +178,34 @@ class NetworkDeserialization(XMLNetworkFileLoading):
             new_control_valve.pressure_loss_out = cls.get_control_valve_pressure_loss_out(control_valve)
             new_control_valve.pressure_diff_min = cls.get_control_valve_pressure_diff_min(control_valve)
             new_control_valve.pressure_diff_max = cls.get_valve_pressure_diff_max(control_valve)
-            control_valve_list.append(new_control_valve)
+            control_valve_list[new_control_valve.id] = new_control_valve
             print(new_control_valve)
+            cls.f.write(new_control_valve.__str__())
         return control_valve_list
+
+    def deserialize_energy_consumption_measurement(cls, *name) -> [Tuple]:
+        energy_consumption_measurement: [Tuple] = []
+        for energy_consumption in cls.get_drive_energy_consumption_measurements(*name):
+            measurement = tuple([cls.get_drive_energy_consumption_compressor_power(energy_consumption),
+                                 cls.get_drive_energy_consumption_fuel_consumption(energy_consumption)])
+            print(measurement)
+            cls.f.write(measurement.__str__())
+            energy_consumption_measurement.append(measurement)
+        return energy_consumption_measurement
+
+    def deserialize_power_measurement(cls, *name) -> [Tuple]:
+        power_measurement: [Tuple] = []
+        for power in cls.get_drive_power_measurements(*name):
+            measurement = tuple([cls.get_drive_power_speed(power), cls.get_drive_maximal_power(power)])
+            print(measurement)
+            cls.f.write(measurement.__str__())
+            power_measurement.append(measurement)
+        return power_measurement
 
     @classmethod
     def get_pipe_flow_min(cls, pipe):
-        return float(pipe.find('gas:flowMin', ns).attrib.get('value'))
+        pip = float(pipe.find('gas:flowMin', ns).attrib.get('value'))
+        return pip if pip > 0.0 else 0.0
 
     @classmethod
     def get_pipe_flow_max(cls, pipe):
@@ -186,11 +225,13 @@ class NetworkDeserialization(XMLNetworkFileLoading):
 
     @classmethod
     def get_pipe_pressure_max(cls, pipe):
-        return float(pipe.find('gas:pressureMax', ns).attrib.get('value'))
+        pip = pipe.find('gas:pressureMax', ns)
+        return float(pip.attrib.get('value')) if pip else 0.0
 
     @classmethod
     def get_pipe_heat_transfer_coefficient(cls, pipe):
-        return float(pipe.find('gas:heatTransferCoefficient', ns).attrib.get('value'))
+        pip = pipe.find('gas:heatTransferCoefficient', ns)
+        return float(pip.attrib.get('value')) if pip else 0.0
 
     @classmethod
     def get_valve_pressure_diff_max(cls, valve):
@@ -314,6 +355,21 @@ class NetworkDeserialization(XMLNetworkFileLoading):
     def get_control_valve_pressure_in_min(cls, control_valve):
         return float(control_valve.find('gas:pressureInMin', ns).attrib.get('value'))
 
+    @classmethod
+    def get_drive_energy_consumption_compressor_power(cls, energy_consumption):
+        return float(energy_consumption.find('gas:compressorPower', ns).attrib.get('value'))
 
-# NetworkDeserialization.get_innode_list('data', 'GasLib-11', 'GasLib-11.net')
-NetworkDeserialization.deserialize_control_valve_list('data', 'GasLib-582', 'GasLib-582.net')
+    @classmethod
+    def get_drive_energy_consumption_fuel_consumption(cls, fuel_consumption):
+        return float(fuel_consumption.find('gas:fuelConsumption', ns).attrib.get('value'))
+
+    @classmethod
+    def get_drive_power_speed(cls, speed):
+        return float(speed.find('gas:speed', ns).attrib.get('value'))
+
+    @classmethod
+    def get_drive_maximal_power(cls, power):
+        return float(power.find('gas:maximalPower', ns).attrib.get('value'))
+
+
+networkDeserialization: NetworkDeserialization = NetworkDeserialization(*network_file)

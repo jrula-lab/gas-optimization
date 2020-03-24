@@ -191,8 +191,8 @@ if __name__ == "__main__":
     for u in U:
         brk[u] = lower_brkpts(a[u],b[u],c[u],e[u],f[u],p_min[u],p_max[u],n)
 
-    # lower = eld_complete(U,p_min,p_max,d,brk)
-    lower = eld_another(U,p_min,p_max,d,brk)
+    lower = eld_complete(U,p_min,p_max,d,brk)
+    #lower = eld_another(U,p_min,p_max,d,brk)
 
     lower.setRealParam("limits/gap", 1e-12)
     lower.setRealParam("limits/absgap", 1e-12)
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
     lower.optimize()
     p = lower.data
-    print("Lower bound:",lower.ObjBound)
+   # print("Lower bound:",lower.ObjBound)
     UB = sum(cost(a[u],b[u],c[u],e[u],f[u],p_min[u],lower.getVal(p[u])) for u in U)
     print("Upper bound:",UB)
     print("Solution:")

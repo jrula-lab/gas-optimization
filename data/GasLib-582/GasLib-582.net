@@ -8439,5 +8439,52 @@
       <dragFactor value="86.01000214"/>
       <diameter value="1000" unit="mm"/>
     </resistor>
+    <drives>
+      <gasDrivenMotor id="drive_2">
+        <energy_rate_fun_coeff_1 value="2629"/>
+        <energy_rate_fun_coeff_2 value="2.47429"/>
+        <energy_rate_fun_coeff_3 value="1.37143e-05"/>
+        <power_fun_coeff_1 value="230.515"/>
+        <power_fun_coeff_2 value="24.4196"/>
+        <power_fun_coeff_3 value="0.00423351"/>
+        <specificEnergyConsumptionMeasurements>
+          <measurement>
+            <compressorPower unit="kW" value="5250"/>
+            <fuelConsumption unit="kW" value="15997"/>
+          </measurement>
+          <measurement>
+            <compressorPower unit="kW" value="7000"/>
+            <fuelConsumption unit="kW" value="20621"/>
+          </measurement>
+          <measurement>
+            <compressorPower unit="kW" value="8750"/>
+            <fuelConsumption unit="kW" value="25329"/>
+          </measurement>
+        </specificEnergyConsumptionMeasurements>
+        <maximalPowerMeasurements>
+          <measurement>
+            <speed unit="per_min" value="165"/>
+            <maximalPower unit="kW" value="4375"/>
+          </measurement>
+          <measurement>
+            <speed unit="per_min" value="250"/>
+            <maximalPower unit="kW" value="6600"/>
+          </measurement>
+          <measurement>
+            <speed unit="per_min" value="330"/>
+            <maximalPower unit="kW" value="8750"/>
+          </measurement>
+        </maximalPowerMeasurements>
+      </gasDrivenMotor>
+    </drives>
+    <pistonCompressor drive="drive_2" id="compressor_2">
+        <speedMin unit="per_min" value="165"/>
+        <speedMax unit="per_min" value="350"/>
+        <operatingVolume unit="m_cube" value="0.5"/>
+        <maximalTorque unit="kNm" value="0"/>
+        <maximalCompressionRatio value="2"/>
+        <adiabaticEfficiency value="0.95"/>
+        <additionalReductionVolFlow value="0.35"/>
+    </pistonCompressor>
   </framework:connections>
 </network>

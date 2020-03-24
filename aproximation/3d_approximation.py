@@ -1,6 +1,9 @@
 from typing import Callable, List, Tuple, Dict
 
 from pyscipopt import Model, quicksum
+import numpy as np
+
+from logger.logger import Logger
 
 
 class _3Dpoint:
@@ -134,10 +137,11 @@ class _3dMesh:
         return (x1_list, x2_list, x3_list, f_x1_x2_x3_list, self.lambda_dict)
 
 
-class Approximation:
+class Approximation(Logger):
 
     def __init__(self, x1_min: float, x1_max: float, x2_min: float, x2_max: float, x3_min: float, x3_max, f_x1_x2_x3:
-    Callable, threshold: int = 3, optimization_type: bool = True):
+    Callable, threshold: int = 3, optimization_type: bool = True, file_name="approximation_3d.txt", simulation_id="id"):
+        Logger.__init__(self, file_name)
         self.x1_min: float = x1_min
         self.x1_max: float = x1_max
         self.x2_min: float = x2_min
@@ -148,6 +152,7 @@ class Approximation:
         self.model = Model("Piecewise Linear Approximation of 3 arg function")
         self.f_x1_x2_x3 = f_x1_x2_x3
         self.optimization_type = optimization_type
+        self.simulation_id = simulation_id
 
     def add_constraints(self, _lambda, x1, x2, x3):
         triangle_active = {}
@@ -156,13 +161,13 @@ class Approximation:
         for i in range(len(simplices)):
             triangle_active[i] = self.model.addVar(name="y[%d]" % i, vtype="B")
 
-        self.model.addCons(quicksum(triangle_active[i] for i in triangle_active) ==1)
+        self.model.addCons(quicksum(triangle_active[i] for i in triangle_active) == 1)
 
         for j, tetrahedron_point in enumerate(simplices):
             self.model.addCons(quicksum(k for k in tetrahedron_point) >= triangle_active[j])
 
-        self.model.addCons(quicksum(_lambda[i]*x1[i] for i in range(len(x1))) <= self.x1_max)
-        self.model.addCons(quicksum(_lambda[i]*x1[i] for i in range(len(x1))) >= self.x1_min)
+        self.model.addCons(quicksum(_lambda[i] * x1[i] for i in range(len(x1))) <= self.x1_max)
+        self.model.addCons(quicksum(_lambda[i] * x1[i] for i in range(len(x1))) >= self.x1_min)
 
         self.model.addCons(quicksum(_lambda[i] * x2[i] for i in range(len(x2))) <= self.x2_max)
         self.model.addCons(quicksum(_lambda[i] * x2[i] for i in range(len(x2))) >= self.x2_min)
@@ -176,7 +181,6 @@ class Approximation:
 
         self.model.addCons(2 * quicksum(_lambda[i] * x3[i] for i in range(len(x1))) >= 1)
 
-
     def model_definition(self):
         x1_list, x2_list, x3_list, f_x1_x2_x3_list, lambda_dict = self.mesh_3d.get_credential_list()
         for i in range(len(lambda_dict)):
@@ -186,15 +190,18 @@ class Approximation:
         self.model.setObjective(quicksum(lambda_dict[i] * f_x1_x2_x3_list[i] for i in range(len(f_x1_x2_x3_list))),
                                 "minimize" if self.optimization_type else "maximize")
         self.model.optimize()
-        return self.print_approximation_results(lambda_dict, x1_list, x2_list, x3_list)
+        return self.print_approximation_results(lambda_dict, x1_list, x2_list, x3_list, f_x1_x2_x3_list)
 
-    def print_approximation_results(self, _lambda, x1, x2, x3):
-        x1 = quicksum(x1[i] * self.model.getVal(_lambda[i]) for i in _lambda)
-        x2 = quicksum(x2[i] * self.model.getVal(_lambda[i]) for i in _lambda)
-        x3 = quicksum(x3[i] * self.model.getVal(_lambda[i]) for i in _lambda)
-        print("x1 {} x2 {} x3 {}".format(x1, x2, x3))
-        f_x1_x2_x3 = self.f_x1_x2_x3(x1, x2, x3)
-        print("f(x1, x2): {}".format(f_x1_x2_x3))
+    def print_approximation_results(self, _lambda, x1, x2, x3, f_x1_x2_x3_list):
+        self.f.write("Simulation id is {}\n".format(self.simulation_id))
+        x1 = np.sum(np.array([x1[i] * self.model.getVal(_lambda[i]) for i in _lambda]))
+        x2 = np.sum(np.array([x2[i] * self.model.getVal(_lambda[i]) for i in _lambda]))
+        x3 = np.sum(np.array([x3[i] * self.model.getVal(_lambda[i]) for i in _lambda]))
+        f_x1_x2_x3 = np.sum(np.array([f_x1_x2_x3_list[i] * self.model.getVal(_lambda[i]) for i in _lambda]))
+        self.f.write("x1: {} x2: {} x3: {} L(f(x1, x2, x3)): {} fx1_x2_x3(x1, x2, x3): {} error: {}\n"
+                     .format(x1, x2, x3, f_x1_x2_x3, self.f_x1_x2_x3(x1, x2, x3),
+                             f_x1_x2_x3 - self.f_x1_x2_x3(x1, x2, x3)))
+        self.f.close()
 
 
 # mesh: _3dMesh = _3dMesh(0.0, 1.0, 0.0, 1.0, 0.0, 1.0,
@@ -208,7 +215,25 @@ class Approximation:
 # print(len(f))
 # print(len(_lambda))
 approximation = Approximation(0.0, 1.0, 0.0, 1.0, 0.0, 1.0,
-                        lambda x1, x2, x3: 6 * x1 + 0.5 * x2 + 4 * x3 - 2 * x1 ** 2 - 1.5 * x2 ** 2 - 1.75 * x3 ** 2, 3)
+                              lambda x1, x2,
+                                     x3: 6 * x1 + 0.5 * x2 + 4 * x3 - 2 * x1 ** 2 - 1.5 * x2 ** 2 - 1.75 * x3 ** 2, 3)
 #
 approximation.model_definition()
 
+
+# approximation = Approximation(4, 20, 21, 40, 200, 10000,
+#                               lambda x1, x2,
+#                                      x3: ((x2/x1)**(0.296/1.296)-1)*x3, 3)
+# approximation.model_definition()
+
+# do not burden algorithm with big number
+
+def approximation_checker(x1, x2, x3):
+    return ((x2 / x1) ** (0.296 / 1.296) - 1) * x3
+
+# print(approximation_checker(20.0, 21, 200.0))
+#
+# approximation = Approximation(-2, 0, -2, 0, 0, 1,
+#                               lambda x1, x2,
+#                                      x3: x1 ** 2 + 2.5 - x3 ** 2, 10)
+# approximation.model_definition()

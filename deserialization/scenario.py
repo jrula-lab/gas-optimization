@@ -1,9 +1,13 @@
 from config.ns import ns
 from config.xml_scenario_file_config import XMLScenarioFileLoading
+from constants_global.constants import scenario_file
 from model.scenario.scenario_node import ScenarioNode
 
 
 class Scenario(XMLScenarioFileLoading):
+
+    def __init__(self, *name):
+        self.scenario_list: [ScenarioNode] = self.deserialize_scenario(*name)
 
     @classmethod
     def deserialize_scenario(cls, *name):
@@ -19,7 +23,6 @@ class Scenario(XMLScenarioFileLoading):
             scenario_list.append(new_scenario_node)
         return scenario_list
 
-
     @classmethod
     def get_scenario_pressure(cls, scenario_node):
         return scenario_node.findall('gas:pressure', ns)
@@ -31,7 +34,7 @@ class Scenario(XMLScenarioFileLoading):
             for pressure in pressure_list:
                 if pressure.attrib.get('bound') == 'lower':
                     return float(pressure.attrib.get('value'))
-        return None
+        return 0.0
 
     @classmethod
     def get_scenario_pressure_upper(cls, scenario_name):
@@ -40,7 +43,7 @@ class Scenario(XMLScenarioFileLoading):
             for pressure in pressure_list:
                 if pressure.attrib.get('bound') == 'upper':
                     return float(pressure.attrib.get('value'))
-        return None
+        return 0.0
 
     @classmethod
     def get_scenario_flow(cls, scenario_node):
@@ -51,4 +54,5 @@ class Scenario(XMLScenarioFileLoading):
         contract_pressure = scenario_name.find('gas:contractPressureMax', ns)
         return float(contract_pressure.attrib.get('value')) if contract_pressure is not None else None
 
-print(Scenario.deserialize_scenario('data', 'GasLib-582', 'GasLib-582.scn'))
+
+scenario: Scenario = Scenario(*scenario_file)

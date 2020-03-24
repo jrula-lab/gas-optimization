@@ -1,7 +1,7 @@
 #  Adding the number of heads of cranes, turtles and octopuses totals 32, and the number of legs sums to 80.
 #  What is the minimum number of turtles and octopuses?
-# Let us formalize this as an optimization problem with mathematical formulas. This process of describing
-#  a situation algebraically is called the formulation of a problem in mathematical optimization.
+# Let us formalize this as an optymization problem with mathematical formulas. This process of describing
+#  a situation algebraically is called the formulation of a problem in mathematical optymization.
 
 from pyscipopt import Model
 
