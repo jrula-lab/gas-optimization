@@ -37,23 +37,23 @@
     </node>
 
     <node type="entry" id="entry02">
-      <flow bound="lower" value="137.15" unit="1000m_cube_per_hour"/>
-      <flow bound="upper" value="137.15" unit="1000m_cube_per_hour"/>
+      <flow bound="lower" value="137.150" unit="1000m_cube_per_hour"/>
+      <flow bound="upper" value="137.150" unit="1000m_cube_per_hour"/>
     </node>
 
     <node type="entry" id="entry03">
-      <flow bound="lower" value="180.56" unit="1000m_cube_per_hour"/>
-      <flow bound="upper" value="180.56" unit="1000m_cube_per_hour"/>
+      <flow bound="lower" value="180.560" unit="1000m_cube_per_hour"/>
+      <flow bound="upper" value="180.560" unit="1000m_cube_per_hour"/>
     </node>
 
     <node type="exit" id="exit01">
-      <flow bound="lower" value="100" unit="1000m_cube_per_hour"/>
-      <flow bound="upper" value="100" unit="1000m_cube_per_hour"/>
+      <flow bound="lower" value="100.000" unit="1000m_cube_per_hour"/>
+      <flow bound="upper" value="100.000" unit="1000m_cube_per_hour"/>
     </node>
 
     <node type="exit" id="exit02">
-      <flow bound="lower" value="100" unit="1000m_cube_per_hour"/>
-      <flow bound="upper" value="100" unit="1000m_cube_per_hour"/>
+      <flow bound="lower" value="100.000" unit="1000m_cube_per_hour"/>
+      <flow bound="upper" value="100.000" unit="1000m_cube_per_hour"/>
     </node>
 
     <node type="exit" id="exit03">
@@ -67,12 +67,12 @@
     </node>
 
     <node type="exit" id="exit05">
-      <flow bound="lower" value="100" unit="1000m_cube_per_hour"/>
-      <flow bound="upper" value="100" unit="1000m_cube_per_hour"/>
+      <flow bound="lower" value="100.000" unit="1000m_cube_per_hour"/>
+      <flow bound="upper" value="100.000" unit="1000m_cube_per_hour"/>
     </node>
 
     <pipe id="L101">
-      <soilTemperature value="311" unit="K"/>
+      <soilTemperature value="311.00" unit="K"/>
     </pipe>
 
   </scenario>

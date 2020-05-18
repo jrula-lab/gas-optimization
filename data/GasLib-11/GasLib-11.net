@@ -226,11 +226,13 @@
       <heatTransferCoefficient unit="W_per_m_square_per_K" value="2"/>
     </pipe>
 
-    <valve id="V01_N01_N03"  from="N01" to="N03">
-      <flowMin unit="1000m_cube_per_hour" value="-1100.0"/>
-      <flowMax unit="1000m_cube_per_hour" value="1100.0"/>
-      <pressureDifferentialMax unit="bar" value="120"/>
-    </valve>
+
+
+    <shortPipe id="V01_N01_N03"  from="N01" to="N03">
+      <pressureMax unit="bar" value="200"/>
+      <flowMin unit="1000m_cube_per_hour" value="0.0"/>
+      <flowMax unit="1000m_cube_per_hour" value="720.0"/>
+    </shortPipe>
 
     <compressorStation id="CS01_entry03_N01" from="entry03" to="N01" fuelGasVertex="N01">
       <flowMin value="0.0" unit="1000m_cube_per_hour"/>
@@ -239,6 +241,7 @@
       <pressureLossOut unit="bar" value="0.0"/>
       <pressureInMin value="40.0" unit="bar"/>
       <pressureOutMax value="70.0" unit="bar"/>
+      <pressureMax unit="bar" value="200"/>
     </compressorStation>
 
     <compressorStation id="CS02_N04_N05" from="N04" to="N05" fuelGasVertex="N05">

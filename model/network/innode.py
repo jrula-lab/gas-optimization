@@ -13,6 +13,5 @@ class Innode(Node):
 
     def __str__(self) -> str:
         return 'InNode: id = {} alias = {} geo_long={} geo_lat={} x={} y={} height={} pressure_min={} ' \
-                    'pressure_max={} ' \
-                   .format(self.id, self.alias, self.geo_long, self.geo_lat, self.x,
+                    'pressure_max={}'.format(self.id, self.alias, self.geo_long, self.geo_lat, self.x,
                            self.y, self.height, self.pressure_min, self.pressure_max)

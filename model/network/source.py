@@ -1,4 +1,5 @@
-from constants_global.constants import calculate_reduced_temperature, read_molar_mass, read_pseudo_critical_pressure
+from constants_global.constants import calculate_reduced_temperature, read_molar_mass, read_pseudo_critical_pressure, \
+    read_gas_calorific_value
 from model.network.node import Node
 from model.scenario.scenario_node import ScenarioNode
 
@@ -6,8 +7,6 @@ from model.scenario.scenario_node import ScenarioNode
 class Source(Node):
     def __init__(self, id, alias) -> None:
         super().__init__(id, alias)
-        self.flow_min = float
-        self.flow_max = float
         self.gas_temperature = float
         self.calorific_value = float
         self.norm_density = float
@@ -20,6 +19,7 @@ class Source(Node):
         self.pressure_lower: float = None
         self.pressure_upper: float = None
 
+
     def __eq__(self, o: object) -> bool:
         return super().__eq__(o)
 
@@ -31,7 +31,7 @@ class Source(Node):
                     ' pressure_max={} flow_min={} flow_max={}' \
                     'gas_temperature={} calorifict_value={} norm_density={} coeff_a_heat={} coeff_b_heat={} coeff_' \
                     'c_heat={} molar_mass={} pseudo_critical_pressure={}' \
-                    'presudo_critical_temperature={}\n'.format(self.id, self.alias, self.geo_long, self.geo_lat, self.x,
+                    'presudo_critical_temperature={}, flow_in_out = {}\n'.format(self.id, self.alias, self.geo_long, self.geo_lat, self.x,
                                                                self.y, self.height, self.pressure_min,
                                                                self.pressure_max,
                                                                self.flow_min, self.flow_max,
@@ -40,19 +40,18 @@ class Source(Node):
                                                                self.coeff_a_heat_capacity, self.coeff_b_heat_capacity,
                                                                self.coeff_c_heat_capacity,
                                                                self.molar_mass, self.pseudo_critical_pressure,
-                                                               self.pseudo_critical_temperature)
+                                                               self.pseudo_critical_temperature, self.flow_in_out)
 
     @staticmethod
-    def calculation_reduced_temperature(source_list: {}):
+    def read_constant_data(source_list: {}):
         source: Source = list(source_list.values())[0]
-        calculate_reduced_temperature(source.pseudo_critical_temperature, source.gas_temperature)
+        calculate_reduced_temperature(source.pseudo_critical_temperature, source.gas_temperature+273.15)
         read_molar_mass(source.molar_mass)
         read_pseudo_critical_pressure(source.pseudo_critical_pressure)
+        read_gas_calorific_value(source.calorific_value)
 
     def assign_values_from_scenario_node(self, node: ScenarioNode):
-        self.flow_in = node.flow
+        self.flow_in_out = node.flow
         self.pressure_upper = node.pressure_upper
         self.pressure_lower = node.pressure_low
 
-    def assign_values_from_pipe(self, flow: float = None):
-        self.flow_out = flow

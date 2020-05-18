@@ -9,6 +9,14 @@ class Connection(Element):
         self.to: str
         self.flow_min = float
         self.flow_max = float
+        self.pressure_max =float
+        self.pressure_min: float = 0.0
+        self.from_node = None
+        self.to_node = None
+        self.p_b = None
+        self.p_e = None
+        self.q_b = None
+        self.q_e = None
 
     def __eq__(self, o: object) -> bool:
         return super().__eq__(o)

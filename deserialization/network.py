@@ -32,7 +32,7 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
         self.energy_consumption_measurement = self.deserialize_energy_consumption_measurement(*filename)
         self.power_measurement = self.deserialize_power_measurement(*filename)
         CompressorStation.set_energy_power_measurement(self.energy_consumption_measurement, self.power_measurement)
-        Source.calculation_reduced_temperature(self.source_list)
+        Source.read_constant_data(self.source_list)
         self.f.close()
 
     def deserialize_pipe_list(cls, *name) -> {Pipe}:
@@ -43,11 +43,12 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_pipe.to = pipe.attrib.get('to')
             new_pipe.flow_min = cls.get_pipe_flow_min(pipe)
             new_pipe.flow_max = cls.get_pipe_flow_max(pipe)
-            new_pipe.length = cls.get_pipe_length(pipe)
-            new_pipe.diameter = cls.get_pipe_diameter(pipe)
+            new_pipe.length = cls.get_pipe_length(pipe)*10**3
+            new_pipe.diameter = cls.get_pipe_diameter(pipe)*10**(-3)
             new_pipe.roughness = cls.get_pipe_roughness(pipe)
-            new_pipe.pressure_max = cls.get_pipe_pressure_max(pipe)
-            new_pipe.heat_transfer_coeff = cls.get_pipe_heat_transfer_coefficient(pipe)
+            new_pipe.pressure_max = cls.get_pipe_pressure_max(pipe)*10**5
+            new_pipe.heat_transfer_coeff = cls.get_pipe_heat_transfer_coefficient(pipe)*10**5
+            new_pipe.calculate_friction_factor()
             print(new_pipe)
             cls.f.write(new_pipe.__str__())
             pipe_list[new_pipe.id] = new_pipe
@@ -61,7 +62,7 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_valve.to = valve.attrib.get('to')
             new_valve.flow_min = cls.get_pipe_flow_min(valve)
             new_valve.flow_max = cls.get_pipe_flow_max(valve)
-            new_valve.pressure_diff_max = cls.get_valve_pressure_diff_max(valve)
+            new_valve.pressure_diff_max = cls.get_valve_pressure_diff_max(valve)*10**5
             print(new_valve)
             cls.f.write(new_valve.__str__())
             valve_list[new_valve.id] = new_valve
@@ -75,6 +76,7 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_short_pipe.to = short_pipe.attrib.get('to')
             new_short_pipe.flow_min = cls.get_pipe_flow_min(short_pipe)
             new_short_pipe.flow_max = cls.get_pipe_flow_max(short_pipe)
+            new_short_pipe.pressure_max = cls.get_pipe_pressure_max(short_pipe)*10**5
             print(new_short_pipe)
             cls.f.write(new_short_pipe.__str__())
             short_pipe_list[new_short_pipe.id] = new_short_pipe
@@ -88,7 +90,7 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_resistor.to = resistor.attrib.get('to')
             new_resistor.flow_min = cls.get_pipe_flow_min(resistor)
             new_resistor.flow_max = cls.get_pipe_flow_max(resistor)
-            new_resistor.diameter = cls.get_pipe_diameter(resistor)
+            new_resistor.diameter = cls.get_pipe_diameter(resistor)/10**(-3)
             new_resistor.drag_factor = cls.get_resistor_drag_factor(resistor)
             print(new_resistor)
             cls.f.write(new_resistor.__str__())
@@ -103,8 +105,9 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_compressor.to = compressor.attrib.get('to')
             new_compressor.flow_min = cls.get_pipe_flow_min(compressor)
             new_compressor.flow_max = cls.get_pipe_flow_max(compressor)
-            new_compressor.pressure_in_min = cls.get_compressor_pressure_in_min(compressor)
-            new_compressor.pressure_out_max = cls.get_compressor_pressure_out_max(compressor)
+            new_compressor.pressure_in_min = cls.get_compressor_pressure_in_min(compressor)*10**5
+            new_compressor.pressure_out_max = cls.get_compressor_pressure_out_max(compressor)*10**5
+            new_compressor.pressure_max = cls.get_pipe_pressure_max(compressor)*10**5
             print(new_compressor)
             cls.f.write(new_compressor.__str__())
             compressor_station_list[new_compressor.id] = new_compressor
@@ -118,8 +121,8 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
         new_source.x = cls.get_node_x(source)
         new_source.y = cls.get_node_y(source)
         new_source.height = cls.get_node_height(source)
-        new_source.pressure_min = cls.get_node_pressure_min(source)
-        new_source.pressure_max = cls.get_node_pressure_max(source)
+        new_source.pressure_min = cls.get_node_pressure_min(source)*10**5
+        new_source.pressure_max = cls.get_node_pressure_max(source)*10**5
 
     def deserialize_source_list(cls, *name) -> {Source}:
         source_list: {Source} = {}
@@ -129,13 +132,13 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_source.flow_min = cls.get_pipe_flow_min(source)
             new_source.flow_max = cls.get_pipe_flow_max(source)
             new_source.gas_temperature = cls.get_source_gas_temperature(source)
-            new_source.calorific_value = cls.get_source_calorific_value(source)
+            new_source.calorific_value = cls.get_source_calorific_value(source)*10**6
             new_source.norm_density = cls.get_source_norm_density(source)
-            new_source.coeff_a_heat_capacity = cls.get_source_coefficient_a_heat_capacity(source)
-            new_source.coeff_b_heat_capacity = cls.get_source_coefficient_b_heat_capacity(source)
-            new_source.coeff_c_heat_capacity = cls.get_source_coefficient_c_heat_capacity(source)
+            new_source.coeff_a_heat_capacity = cls.get_source_coefficient_a_heat_capacity(source)/10**3
+            new_source.coeff_b_heat_capacity = cls.get_source_coefficient_b_heat_capacity(source)/10**3
+            new_source.coeff_c_heat_capacity = cls.get_source_coefficient_c_heat_capacity(source)/10**3
             new_source.molar_mass = cls.get_source_moral_mass(source)
-            new_source.pseudo_critical_pressure = cls.get_source_pseudo_critical_pressure(source)
+            new_source.pseudo_critical_pressure = cls.get_source_pseudo_critical_pressure(source)*10**5
             new_source.pseudo_critical_temperature = cls.get_source_pseudo_critical_temperature(source)
             print(new_source)
             cls.f.write(new_source.__str__())
@@ -172,12 +175,12 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
             new_control_valve.to = control_valve.attrib.get('to')
             new_control_valve.flow_min = cls.get_pipe_flow_min(control_valve)
             new_control_valve.flow_max = cls.get_pipe_flow_max(control_valve)
-            new_control_valve.pressure_out_max = cls.get_control_valve_pressure_out_max(control_valve)
-            new_control_valve.pressure_in_min = cls.get_control_valve_pressure_in_min(control_valve)
-            new_control_valve.pressure_loss_in = cls.get_control_valve_pressure_loss_in(control_valve)
-            new_control_valve.pressure_loss_out = cls.get_control_valve_pressure_loss_out(control_valve)
-            new_control_valve.pressure_diff_min = cls.get_control_valve_pressure_diff_min(control_valve)
-            new_control_valve.pressure_diff_max = cls.get_valve_pressure_diff_max(control_valve)
+            new_control_valve.pressure_out_max = cls.get_control_valve_pressure_out_max(control_valve)*10**5
+            new_control_valve.pressure_in_min = cls.get_control_valve_pressure_in_min(control_valve)*10**5
+            new_control_valve.pressure_loss_in = cls.get_control_valve_pressure_loss_in(control_valve)*10**5
+            new_control_valve.pressure_loss_out = cls.get_control_valve_pressure_loss_out(control_valve)*10**5
+            new_control_valve.pressure_diff_min = cls.get_control_valve_pressure_diff_min(control_valve)*10**5
+            new_control_valve.pressure_diff_max = cls.get_valve_pressure_diff_max(control_valve)*10**5
             control_valve_list[new_control_valve.id] = new_control_valve
             print(new_control_valve)
             cls.f.write(new_control_valve.__str__())
@@ -186,17 +189,18 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
     def deserialize_energy_consumption_measurement(cls, *name) -> [Tuple]:
         energy_consumption_measurement: [Tuple] = []
         for energy_consumption in cls.get_drive_energy_consumption_measurements(*name):
-            measurement = tuple([cls.get_drive_energy_consumption_compressor_power(energy_consumption),
-                                 cls.get_drive_energy_consumption_fuel_consumption(energy_consumption)])
+            measurement = tuple([cls.get_drive_energy_consumption_compressor_power(energy_consumption)*10**3,
+                                 cls.get_drive_energy_consumption_fuel_consumption(energy_consumption)*10**3])
             print(measurement)
             cls.f.write(measurement.__str__())
             energy_consumption_measurement.append(measurement)
+        energy_consumption_measurement.append(tuple([0.0, 0.0]))
         return energy_consumption_measurement
 
     def deserialize_power_measurement(cls, *name) -> [Tuple]:
         power_measurement: [Tuple] = []
         for power in cls.get_drive_power_measurements(*name):
-            measurement = tuple([cls.get_drive_power_speed(power), cls.get_drive_maximal_power(power)])
+            measurement = tuple([cls.get_drive_power_speed(power)*10**3, cls.get_drive_maximal_power(power)*10**3])
             print(measurement)
             cls.f.write(measurement.__str__())
             power_measurement.append(measurement)
@@ -226,7 +230,7 @@ class NetworkDeserialization(XMLNetworkFileLoading, Logger):
     @classmethod
     def get_pipe_pressure_max(cls, pipe):
         pip = pipe.find('gas:pressureMax', ns)
-        return float(pip.attrib.get('value')) if pip else 0.0
+        return float(pip.attrib.get('value')) if pip is not None else 0.0
 
     @classmethod
     def get_pipe_heat_transfer_coefficient(cls, pipe):

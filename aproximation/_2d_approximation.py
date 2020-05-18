@@ -3,7 +3,7 @@ from logger.logger import Logger
 from pyscipopt import Model, quicksum
 import numpy as np
 
-
+from model.network.pipe import Pipe
 
 
 class _2DPoint:
@@ -95,19 +95,19 @@ class _2DMesh:
 class Approximation(Logger):
 
     def __init__(self, x1_min: float, x1_max: float, x2_min: float, x2_max: float, _f_x1_x2: Callable, threshold: int=3,
-                 optimization_type: bool = True, file_name="approximation_2d.txt", simulation_id="id"):
+                 optimization_type: bool = True, file_name="approximation_2d.txt", simulation_id="id", model= None):
         Logger.__init__(self, file_name)
         self.x1_max = x1_max
         self.x1_min = x1_min
         self.x2_max = x2_max
         self.x2_min = x2_min
         self.mesh_2d = _2DMesh(x1_min, x1_max, x2_min, x2_max, _f_x1_x2, threshold)
-        self.model = Model('Piecewise Linear Approximation of 2D function')
+        self.model = model
         self.fx1_x2 = _f_x1_x2
         self.optimization_type = optimization_type
         self.simulation_id = simulation_id
 
-    def add_constraints(self, _lambda, x1, x2):
+    def add_constraints(self, _lambda, x1, x2, fx1_x2_list):
         triangle_active = {}
         # 1
         self.model.addCons(quicksum(_lambda[i] for i in _lambda) == 1)
@@ -125,19 +125,14 @@ class Approximation(Logger):
         # 5
         self.model.addCons(quicksum(_lambda[i] * x2[i] for i in range(len(x2))) <= self.x2_max)
         self.model.addCons(quicksum(_lambda[i] * x2[i] for i in range(len(x2))) >= self.x2_min)
-        self.model.addCons((5 * quicksum(_lambda[i] * x1[i] for i in range(len(x1))) + quicksum(_lambda[i] * x2[i] \
-                                                                                                for i in
-                                                                                                range(len(x2)))) >= 3)
+
 
     def _model_definition(self):
         x1_list, x2_list, fx1_x2_list, _lambda_list = self.mesh_2d.get_credential_list()
         for i in range(len(_lambda_list)):
             _lambda_list[i] = self.model.addVar(lb=0, ub=1, name="L[%d]" % i)
-        self.add_constraints(_lambda_list, x1_list, x2_list)
-        self.model.setObjective(quicksum(_lambda_list[i] * fx1_x2_list[i] for i in range(len(fx1_x2_list))),
-                                "minimize" if self.optimization_type else "maximize")
-        self.model.optimize()
-        return self.print_approximation_results(_lambda_list, x1_list, x2_list, fx1_x2_list)
+        self.add_constraints(_lambda_list, x1_list, x2_list, fx1_x2_list)
+
 
     def print_approximation_results(self, _lambda, x1, x2, fx1_x2_list):
         self.f.write("Simulation id is {}\n".format(self.simulation_id))
@@ -146,10 +141,11 @@ class Approximation(Logger):
         fx1_x2 = np.sum(np.array([fx1_x2_list[i]*self.model.getVal(_lambda[i]) for i in _lambda]))
         self.f.write("x1: {} x2: {} L(f(x1, x2)): {} fx1_x2(x1, x2): {} error: {}\n".format(x1, x2, fx1_x2, self.fx1_x2(x1, x2), fx1_x2-self.fx1_x2(x1, x2)))
         self.f.close()
+        return fx1_x2, x1, x2
 
 
-approximation = Approximation(0.0, 1.0, 0, 1.0, lambda x1, x2: -4 * x1 ** 2 - 3 * x2 ** 2 + 6 * x1 + 0.5 * x2, 3)
-approximation._model_definition()
+# approximation = Approximation(0.0, 1.0, 0, 1.0, lambda x1, x2: -4 * x1 ** 2 - 3 * x2 ** 2 + 6 * x1 + 0.5 * x2, 3)
+# approximation._model_definition()
 
 
 # approximation = Approximation(0.0, 10, 0.0, 10, lambda x1, x2: (x1**2+x2**2-1)**2, 100)

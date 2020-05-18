@@ -6,6 +6,8 @@ class Valve(Connection):
     def __init__(self, id, alias) -> None:
         super().__init__(id, alias)
         self.pressure_diff_max = float
+        self.pressure_min: float = 0.0
+        self.pressure_max: float = 200.0
 
     def __eq__(self, o: object) -> bool:
         return super().__eq__(o)

@@ -47,10 +47,10 @@ class CompressorStation(Connection):
         CompressorStation.power_measurement = power_measurement_list
         comp_power, energy_cons = convert_array_tuple_to_np_array(CompressorStation.energy_consumption_measurement)
         CompressorStation.energy_consumption_rate = least_square_solution(comp_power, energy_cons)
-        draw_scatter_line_graph(comp_power, energy_cons, function_equation=CompressorStation.energy_consumption_rate)
+        # draw_scatter_line_graph(comp_power, energy_cons, function_equation=CompressorStation.energy_consumption_rate)
         comp_speed, max_power = convert_array_tuple_to_np_array(CompressorStation.power_measurement)
         CompressorStation.maximum_power = least_square_solution(comp_speed, max_power)
-        draw_scatter_line_graph(comp_speed, max_power, function_equation=CompressorStation.maximum_power)
+        # draw_scatter_line_graph(comp_speed, max_power, function_equation=CompressorStation.maximum_power)
         return (comp_power, energy_cons, comp_speed, max_power)
 
     def __str__(self):

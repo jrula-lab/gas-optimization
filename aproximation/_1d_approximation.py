@@ -5,6 +5,10 @@ from logger.logger import Logger
 import numpy as np
 
 
+# import gurobipy as gp
+# from gurobipy import *
+
+
 class _1DPoint:
     def __init__(self):
         self._lambda: int = None
@@ -65,18 +69,19 @@ class _1DMesh:
 
 class Approximation(Logger):
 
-    def __init__(self, x1_min: float, x1_max: float, _f_x1_: Callable, threshold: int = 3,
-                 optimizaiton_type: bool = True, file_name="approximation_1d.txt", simulation_id="id"):
+    def __init__(self, x1_min, x1_max, _f_x1_: Callable, threshold: int = 3,
+                 optimizaiton_type: bool = True, file_name="approximation_1d.txt", simulation_id="id",
+                 model: Model = None):
         Logger.__init__(self, file_name)
         self.x1_min = x1_min
         self.x1_max = x1_max
         self.f_x1 = _f_x1_
         self.mesh1d: _1DMesh = _1DMesh(x1_min, x1_max, _f_x1_, threshold)
-        self.model = Model("Piecewise Linear Approximation of 1D function")
+        self.model = model
         self.optimization_type = optimizaiton_type
         self.simulation_id = simulation_id
 
-    def add_constraint(self, _lambda, x1):
+    def add_constraint(self, _lambda, x1, f_x1_list):
         section_active = {}
         # 1
         self.model.addCons(quicksum(_lambda[i] for i in _lambda) == 1)
@@ -92,16 +97,18 @@ class Approximation(Logger):
         self.model.addCons(quicksum(_lambda[i] * x1[i] for i in range(len(x1))) <= self.x1_max)
         self.model.addCons(quicksum(_lambda[i] * x1[i] for i in range(len(x1))) >= self.x1_min)
 
+
+
     def mode_definition(self):
         x1_list, f_x1_list, lambda_dict = self.mesh1d.get_credential_list()
         for i in range(len(lambda_dict)):
             lambda_dict[i] = self.model.addVar(lb=0, ub=1, name="L[%d]" % i)
 
-        self.add_constraint(lambda_dict, x1_list)
-        self.model.setObjective(quicksum(lambda_dict[i] * f_x1_list[i] for i in range(len(f_x1_list))),
-                                "minimize" if self.optimization_type else "maximize")
-        self.model.optimize()
-        return self.print_approximation_results(lambda_dict, x1_list, f_x1_list)
+        self.add_constraint(lambda_dict, x1_list, f_x1_list)
+        # self.model.setObjective(quicksum(lambda_dict[i] * f_x1_list[i] for i in range(len(f_x1_list))),
+        #                         "minimize" if self.optimization_type else "maximize")
+        # self.model.optimize()
+        # return self.print_approximation_results(lambda_dict, x1_list, f_x1_list)
 
     def print_approximation_results(self, _lambda, x1, f_x1_list):
         self.f.write("Simulation id is {}\n".format(self.simulation_id))
@@ -110,7 +117,9 @@ class Approximation(Logger):
         self.f.write("x1: {} L(f(x1, x2)): {} fx1_x2(x1, x2): {} error: {}\n".format(x1, fx1_x2, self.f_x1(x1),
                                                                                      fx1_x2 - self.f_x1(x1)))
         self.f.close()
+        return fx1_x2, x1
 
 
-approximation = Approximation(0.0, 4, lambda x1: x1 ** 5 - 3 * x1 ** 4 + 5, 10)
+m = Model("approximation")
+approximation = Approximation(4, 4, lambda x1: 2 * (200 - x1) ** 0.5, 10, model=m)
 approximation.mode_definition()

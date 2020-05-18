@@ -13,8 +13,9 @@ gas_temperature: float = None  # todo assigned in source there is only one first
 molar_mass: float = None
 pseudo_critical_pressure: float = None
 adiabatic_efficiency: float = 0.95
-scenario_file = ('data', 'GasLib-582', 'GasLib-582.scn')
-network_file = ('data', 'GasLib-582', 'GasLib-582.net')
+scenario_file = ('data', 'GasLib-11', 'GasLib-11.scn')
+network_file = ('data', 'GasLib-11', 'GasLib-11.net')
+gas_calorific_value: float = None
 
 
 def calculate_reduced_temperature(pseudo_critical_temperature: float, temperature: float):
@@ -32,3 +33,14 @@ def read_molar_mass(mass: float):
 def read_pseudo_critical_pressure(pressure: float):
     global pseudo_critical_pressure
     pseudo_critical_pressure = pressure
+
+
+def compressibility_factor_papay_formula(pressure: float) -> float:
+    import numpy as np
+    return 1 - 3.52 * (pressure / pseudo_critical_pressure) * np.e ** (-2.26 * reduced_temperature) + 0.274 * (
+            pressure / pseudo_critical_pressure) ** 2 * np.e ** (-1.878 * reduced_temperature)
+
+
+def read_gas_calorific_value(calorific_value: float):
+    global gas_calorific_value
+    gas_calorific_value = calorific_value
